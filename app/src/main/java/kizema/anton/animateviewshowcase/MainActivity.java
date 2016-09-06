@@ -1,5 +1,6 @@
 package kizema.anton.animateviewshowcase;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -7,7 +8,7 @@ import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import kizema.anton.animateviewshowcase.decorators.AnimatedCircleDeco;
+import kizema.anton.animateviewshowcase.decorators.animcircle.AnimatedCircleDeco;
 import kizema.anton.animateviewshowcase.decorators.Decorator;
 import kizema.anton.animateviewshowcase.helpers.UIHelper;
 
@@ -29,8 +30,14 @@ public class MainActivity extends AppCompatActivity {
 
         ViewGroup parent = (ViewGroup) findViewById(R.id.parent);
 
-        Decorator deco = new AnimatedCircleDeco.Builder(this).setNumOfCircles(3).
-                setWidthOfCircle(UIHelper.getDPI(10)).setFrameTime(500).setDefRadius(UIHelper.getPixel(20)).build();
+        Decorator deco = new AnimatedCircleDeco.Builder(this)
+                .setNumOfCircles(5)
+                .setWidthOfCircle(UIHelper.getDPI(10))
+                .setFrameTime(300)
+                .setDefRadius(UIHelper.getPixel(20))
+                .setColor(Color.parseColor("#166ee8d8"))
+//                .setStrokeColor(Color.parseColor("#6ee8d8"))
+                .build();
         FrameDecorator frame = new FrameDecorator(tv, deco);
 
         parent.addView(frame);

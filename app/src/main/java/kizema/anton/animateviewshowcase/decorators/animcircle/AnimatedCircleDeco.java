@@ -1,4 +1,4 @@
-package kizema.anton.animateviewshowcase.decorators;
+package kizema.anton.animateviewshowcase.decorators.animcircle;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -9,7 +9,7 @@ import android.os.Handler;
 import java.util.ArrayList;
 import java.util.List;
 
-import kizema.anton.animateviewshowcase.decorators.animcircle.AnimCircle;
+import kizema.anton.animateviewshowcase.decorators.Decorator;
 import kizema.anton.animateviewshowcase.helpers.UIHelper;
 
 public class AnimatedCircleDeco extends Decorator {
@@ -17,9 +17,10 @@ public class AnimatedCircleDeco extends Decorator {
     private static final int NOT_INITED = -1;
     private static final int DEF_FRAME_TIME = -1;
 
-    Paint circlePaint;
+    private Paint circleStrokePaint;
+    private Paint circleFillPaint;
 
-    Handler mHandler = new Handler();
+    private Handler mHandler = new Handler();
 
     //configs
     private int widthOfCircle = UIHelper.getDPI(1);
@@ -38,25 +39,19 @@ public class AnimatedCircleDeco extends Decorator {
     private AnimatedCircleDeco(Context context) {
         super(context);
 
-        circlePaint = new Paint();
-        circlePaint.setAntiAlias(true);
-        circlePaint.setColor(Color.BLACK);
-        circlePaint.setStyle(Paint.Style.STROKE);
-//        vertexPaint.setStrokeJoin(Paint.Join.ROUND);
-//        vertexPaint.setStrokeCap(Paint.Cap.ROUND);
-        circlePaint.setStrokeWidth(widthOfCircle);
+        circleStrokePaint = new Paint();
+        circleStrokePaint.setAntiAlias(true);
+        circleStrokePaint.setColor(Color.BLACK);
+        circleStrokePaint.setStyle(Paint.Style.STROKE);
+        circleStrokePaint.setStrokeWidth(widthOfCircle);
 
         animatedRunnable = new AnimatedRunnable();
-
-        animCircleList = new ArrayList<>(numOfCircles);
     }
 
     private class AnimatedRunnable implements Runnable {
 
         @Override
         public void run() {
-//            defRadius += deltaDistance;
-
             for (AnimCircle c : animCircleList) {
                 c.incrementStartRadius(deltaDistance);
             }
@@ -79,8 +74,8 @@ public class AnimatedCircleDeco extends Decorator {
             defRadius = Math.min(w, h) / 2;
         }
 
-        int d = maxL - defRadius;
-        lengthBetweenCircles = d / numOfCircles;
+//        int d = maxL - defRadius;
+        lengthBetweenCircles = maxL / numOfCircles;
         deltaDistance = lengthBetweenCircles / 3;
 
         int counter = 0;
@@ -88,8 +83,6 @@ public class AnimatedCircleDeco extends Decorator {
             c.setStartRadius(defRadius - counter * lengthBetweenCircles - deltaDistance);
             ++counter;
         }
-
-//        defRadius -= deltaDistance;
 
         mHandler.removeCallbacks(animatedRunnable);
         mHandler.post(animatedRunnable);
@@ -114,28 +107,17 @@ public class AnimatedCircleDeco extends Decorator {
                 continue;
             }
 
-            canvas.drawCircle(w / 2, h / 2, c.getStartRadius(), circlePaint);
+            if (circleFillPaint != null){
+                canvas.drawCircle(w / 2, h / 2, c.getStartRadius(), circleFillPaint);
+            }
+
+            canvas.drawCircle(w / 2, h / 2, c.getStartRadius(), circleStrokePaint);
         }
-    }
-
-
-    public int getWidthOfCircle() {
-        return widthOfCircle;
-    }
-
-    public int getDefRadius() {
-        return defRadius;
-    }
-
-    public int getNumOfCircles() {
-        return numOfCircles;
     }
 
     public static class Builder {
 
         private AnimatedCircleDeco animatedCircleDeco;
-
-        private boolean setDefRadiusWasCalled = false;
 
         public Builder(Context context) {
             animatedCircleDeco = new AnimatedCircleDeco(context);
@@ -156,20 +138,13 @@ public class AnimatedCircleDeco extends Decorator {
         public Builder setWidthOfCircle(int widthOfCircle) {
             animatedCircleDeco.widthOfCircle = widthOfCircle;
 
-            animatedCircleDeco.circlePaint.setStrokeWidth(widthOfCircle);
+            animatedCircleDeco.circleStrokePaint.setStrokeWidth(widthOfCircle);
 
             return this;
         }
 
         public Builder setDefRadius(int defRadius) {
-            setDefRadiusWasCalled = true;
-
             animatedCircleDeco.defRadius = defRadius;
-
-//            int counter = 0;
-//            for (AnimCircle c : animatedCircleDeco.animCircleList){
-//                c.setStartRadius(defRadius - counter);
-//            }
 
             return this;
         }
@@ -180,14 +155,38 @@ public class AnimatedCircleDeco extends Decorator {
             return this;
         }
 
+        public Builder setStrokeColor(int strokeColor) {
+            animatedCircleDeco.circleStrokePaint.setColor(strokeColor);
+
+            return this;
+        }
+
+        public Builder setColor(int circleColor) {
+            animatedCircleDeco.circleFillPaint = new Paint();
+            animatedCircleDeco.circleFillPaint.setAntiAlias(true);
+            animatedCircleDeco.circleFillPaint.setColor(circleColor);
+            animatedCircleDeco.circleFillPaint.setStyle(Paint.Style.FILL);
+
+            return this;
+        }
+
         public AnimatedCircleDeco build() {
-            if (!setDefRadiusWasCalled) {
-                //TODO !!!!!!!!!!!!!!!!
-//                setDefRadius(AnimatedCircleDeco.NOT_INITED);
-            }
             return animatedCircleDeco;
         }
 
     }
+
+    public int getWidthOfCircle() {
+        return widthOfCircle;
+    }
+
+    public int getDefRadius() {
+        return defRadius;
+    }
+
+    public int getNumOfCircles() {
+        return numOfCircles;
+    }
+
 
 }
