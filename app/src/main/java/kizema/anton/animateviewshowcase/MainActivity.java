@@ -7,6 +7,10 @@ import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import kizema.anton.animateviewshowcase.decorators.AnimatedCircleDeco;
+import kizema.anton.animateviewshowcase.decorators.Decorator;
+import kizema.anton.animateviewshowcase.helpers.UIHelper;
+
 public class MainActivity extends AppCompatActivity {
 
     @Override
@@ -20,11 +24,14 @@ public class MainActivity extends AppCompatActivity {
 
         TextView tv = new TextView(this);
         tv.setLayoutParams(new RelativeLayout.LayoutParams
-                (RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT));
+                (RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
         tv.setText("Example deco view");
 
         ViewGroup parent = (ViewGroup) findViewById(R.id.parent);
-        AnimatedFrame frame = new AnimatedFrame(tv);
+
+        Decorator deco = new AnimatedCircleDeco.Builder(this).setNumOfCircles(3).
+                setWidthOfCircle(UIHelper.getDPI(10)).setFrameTime(500).setDefRadius(UIHelper.getPixel(20)).build();
+        FrameDecorator frame = new FrameDecorator(tv, deco);
 
         parent.addView(frame);
     }
