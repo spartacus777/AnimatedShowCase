@@ -55,12 +55,12 @@ public class AnimatedCircleDeco extends Decorator {
 
         @Override
         public void run() {
-            invalidate();
-            defRadius += deltaDistance;
+//            defRadius += deltaDistance;
 
             for (AnimCircle c : animCircleList) {
                 c.incrementStartRadius(deltaDistance);
             }
+            invalidate();
 
             mHandler.postDelayed(this, frameTime);
         }
@@ -85,11 +85,11 @@ public class AnimatedCircleDeco extends Decorator {
 
         int counter = 0;
         for (AnimCircle c : animCircleList) {
-            c.setStartRadius(defRadius - counter * defRadius);
+            c.setStartRadius(defRadius - counter * lengthBetweenCircles - deltaDistance);
             ++counter;
         }
 
-        defRadius -= deltaDistance;
+//        defRadius -= deltaDistance;
 
         mHandler.removeCallbacks(animatedRunnable);
         mHandler.post(animatedRunnable);
@@ -103,11 +103,9 @@ public class AnimatedCircleDeco extends Decorator {
         int w = getWidth();
         int h = getHeight();
 
-//        canvas.drawCircle(w / 2, h / 2, defRadius, circlePaint);
-
         for (AnimCircle c : animCircleList) {
 
-            if (c.getStartRadius() <= 0) {
+            if (c.getStartRadius() < 0) {
                 continue;
             }
 
