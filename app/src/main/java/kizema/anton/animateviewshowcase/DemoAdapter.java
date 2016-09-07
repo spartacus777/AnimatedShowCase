@@ -111,8 +111,10 @@ public class DemoAdapter extends RecyclerView.Adapter<DemoAdapter.BaseViewHolder
                 iv.setScaleType(ImageView.ScaleType.CENTER);
                 iv.setTag(tagIv);
 
-                AnimatedCircleDeco deco = (AnimatedCircleDeco) AnimationSetUpHelper.getInstance().buildAnimatedDeco(parent.getContext(), 10, 1, 2, ColorHelper.COLOR_1);
-                FrameDecorator frame = new FrameDecorator(iv, deco);
+                AnimatedCircleDeco deco = (AnimatedCircleDeco)
+                        AnimationSetUpHelper.getInstance().buildAnimatedDeco(parent.getContext(),
+                                10, 1, 15, ColorHelper.COLOR_1);
+                FrameDecorator frame = new FrameDecorator(iv, deco, FrameDecorator.AnimationMode.BACK);
 
                 return new ImageViewHolder(frame, deco);
             }

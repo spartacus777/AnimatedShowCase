@@ -70,6 +70,10 @@ public class AnimatedCircleDeco extends Decorator {
     }
 
     private void stopAnimation(){
+        backgroundLooperThread.cancelAnimAsync();
+    }
+
+    private void stopAnimPrivate(){
         if (anim != null) {
             anim.cancel();
         }
@@ -99,6 +103,7 @@ public class AnimatedCircleDeco extends Decorator {
     private class BackgroundLooperThread extends HandlerThread {
 
         private static final int DO_JOB = 1;
+        private static final int CANCEL_ANIM_JOB = 2;
 
         private Handler mHandler;
 
@@ -117,6 +122,9 @@ public class AnimatedCircleDeco extends Decorator {
                         case DO_JOB:
                             launchAnimation();
                             break;
+                        case CANCEL_ANIM_JOB:
+                            stopAnimPrivate();
+                            break;
                     }
                 }
             };
@@ -127,6 +135,12 @@ public class AnimatedCircleDeco extends Decorator {
                 mHandler.sendEmptyMessage(DO_JOB);
             }
         }
+
+        public void cancelAnimAsync() {
+            if (mHandler != null) {
+                mHandler.sendEmptyMessage(CANCEL_ANIM_JOB);
+            }
+        }
     }
 
     private void launchAnimation() {
@@ -135,7 +149,7 @@ public class AnimatedCircleDeco extends Decorator {
 
         final int maxL = Math.max(w / 2, h / 2);
 
-        stopAnimation();
+        stopAnimPrivate();
         anim = ValueAnimator.ofInt(0, maxL);
         anim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
 
