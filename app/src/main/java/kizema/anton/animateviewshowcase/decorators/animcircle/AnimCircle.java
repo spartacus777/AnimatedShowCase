@@ -19,8 +19,12 @@ public class AnimCircle {
     public int getStartRadius(){
         return startRadius;
     }
-    public void incrementStartRadius(int dx){
+    public void incrementStartRadius(int dx, int max, int def){
         this.startRadius += dx;
+
+        if (startRadius >= max){
+            startRadius = def;
+        }
     }
 
 //    public void setRadius(int radius){

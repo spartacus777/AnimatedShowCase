@@ -1,10 +1,16 @@
 package kizema.anton.animateviewshowcase.decorators.animcircle;
 
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Message;
+import android.util.Log;
+import android.view.View;
+import android.view.animation.LinearInterpolator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +39,10 @@ public class AnimatedCircleDeco extends Decorator {
 
     private List<AnimCircle> animCircleList;
 
-    private AnimatedRunnable animatedRunnable;
+    //    private AnimatedRunnable animatedRunnable;
+    ValueAnimator anim;
+
+    MyHandlerThread looperThread;
 
     //animation velocity = 200px / second.
     private AnimatedCircleDeco(Context context) {
@@ -45,47 +54,136 @@ public class AnimatedCircleDeco extends Decorator {
         circleStrokePaint.setStyle(Paint.Style.STROKE);
         circleStrokePaint.setStrokeWidth(widthOfCircle);
 
-        animatedRunnable = new AnimatedRunnable();
+//        animatedRunnable = new AnimatedRunnable();
+
+        looperThread = new MyHandlerThread();
+        looperThread.start();
+
+        addOnLayoutChangeListener(new OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+
+                Log.d("YUIKIK", "onLayoutChange : ");
+
+                int w = getWidth();
+                int h = getHeight();
+
+                int maxL = Math.max(w / 2, h / 2);
+
+                if (defRadius == NOT_INITED) {
+                    defRadius = Math.min(w, h) / 2;
+                }
+
+//        int d = maxL - defRadius;
+                lengthBetweenCircles = maxL / numOfCircles;
+                deltaDistance = lengthBetweenCircles / 3;
+
+                int counter = 0;
+                for (AnimCircle c : animCircleList) {
+                    c.setStartRadius(defRadius - counter * lengthBetweenCircles);
+                    ++counter;
+                }
+
+                if (anim != null) {
+                    anim.cancel();
+                }
+
+                looperThread.taskOne();
+
+                curRadius = defRadius;
+
+                removeOnLayoutChangeListener(this);
+            }
+        });
     }
 
-    private class AnimatedRunnable implements Runnable {
+    class MyHandlerThread extends HandlerThread {
+
+        private Handler mHandler;
+
+        public MyHandlerThread() {
+            super("MyHandlerThread");
+        }
 
         @Override
-        public void run() {
-            for (AnimCircle c : animCircleList) {
-                c.incrementStartRadius(deltaDistance);
-            }
-            invalidate();
+        protected void onLooperPrepared() {
+            super.onLooperPrepared();
 
-            mHandler.postDelayed(this, frameTime);
+            mHandler = new Handler(getLooper()) {
+                @Override
+                public void handleMessage(Message msg) {
+                    switch (msg.what) {
+                        case 1:
+                            // Handle message
+                            f();
+                            break;
+                        case 2:
+                            // Handle message
+                            break;
+                    }
+                }
+            };
         }
+
+        public void taskOne() {
+            mHandler.sendEmptyMessage(1);
+        }
+
+        public void taskTwo() {
+            mHandler.sendEmptyMessage(2);
+        }
+
     }
+
+
+
+    private void f() {
+        int w = getWidth();
+        int h = getHeight();
+
+        final int maxL = Math.max(w / 2, h / 2);
+
+        anim = ValueAnimator.ofInt(0, maxL);
+        anim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+
+            private int previusVal = 0;
+
+            @Override
+            public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                int val = (Integer) valueAnimator.getAnimatedValue();
+
+
+                if (val < previusVal){
+                    previusVal = 0;
+                }
+
+                int tmp = val;
+
+                val -= previusVal;
+                previusVal = tmp;
+
+                Log.d("Y","dVAL : " + val);
+
+                curRadius = val;
+                for (AnimCircle c : animCircleList) {
+                    c.incrementStartRadius(val, maxL, defRadius);
+                }
+
+                postInvalidate();
+
+            }
+        });
+        anim.setInterpolator(new LinearInterpolator());
+        anim.setDuration(5000).setRepeatCount(-1);
+        anim.start();
+
+    }
+
+    private int curRadius;
 
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
         super.onLayout(changed, left, top, right, bottom);
-
-        int w = getWidth();
-        int h = getHeight();
-
-        int maxL = Math.max(w / 2, h / 2);
-
-        if (defRadius == NOT_INITED) {
-            defRadius = Math.min(w, h) / 2;
-        }
-
-//        int d = maxL - defRadius;
-        lengthBetweenCircles = maxL / numOfCircles;
-        deltaDistance = lengthBetweenCircles / 3;
-
-        int counter = 0;
-        for (AnimCircle c : animCircleList) {
-            c.setStartRadius(defRadius - counter * lengthBetweenCircles - deltaDistance);
-            ++counter;
-        }
-
-        mHandler.removeCallbacks(animatedRunnable);
-        mHandler.post(animatedRunnable);
 
     }
 
@@ -107,7 +205,7 @@ public class AnimatedCircleDeco extends Decorator {
                 continue;
             }
 
-            if (circleFillPaint != null){
+            if (circleFillPaint != null) {
                 canvas.drawCircle(w / 2, h / 2, c.getStartRadius(), circleFillPaint);
             }
 
