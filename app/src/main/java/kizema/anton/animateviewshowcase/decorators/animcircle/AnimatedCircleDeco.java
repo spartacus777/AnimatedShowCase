@@ -71,14 +71,16 @@ public class AnimatedCircleDeco extends Decorator {
                     ++counter;
                 }
 
-                backgroundLooperThread.taskOne();
+                backgroundLooperThread.launchAnimAsync();
 
-                removeOnLayoutChangeListener(this);
+//                removeOnLayoutChangeListener(this);
             }
         });
     }
 
     private class BackgroundLooperThread extends HandlerThread {
+
+        private static final int DO_JOB = 1;
 
         private Handler mHandler;
 
@@ -94,7 +96,7 @@ public class AnimatedCircleDeco extends Decorator {
                 @Override
                 public void handleMessage(Message msg) {
                     switch (msg.what) {
-                        case 1:
+                        case DO_JOB:
                             launchAnimation();
                             break;
                     }
@@ -102,10 +104,14 @@ public class AnimatedCircleDeco extends Decorator {
             };
         }
 
-        public void taskOne() {
-            mHandler.sendEmptyMessage(1);
+        public void launchAnimAsync() {
+            if (mHandler != null) {
+                mHandler.sendEmptyMessage(DO_JOB);
+            }
         }
     }
+
+    ValueAnimator anim;
 
     private void launchAnimation() {
         int w = getWidth();
@@ -113,7 +119,11 @@ public class AnimatedCircleDeco extends Decorator {
 
         final int maxL = Math.max(w / 2, h / 2);
 
-        ValueAnimator anim = ValueAnimator.ofInt(0, maxL);
+        if (anim != null) {
+            anim.cancel();
+        }
+
+        anim = ValueAnimator.ofInt(0, maxL);
         anim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
 
             private int previusVal = 0;
