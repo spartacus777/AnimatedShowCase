@@ -8,7 +8,6 @@ import android.graphics.Paint;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
-import android.util.Log;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
 
@@ -21,30 +20,24 @@ import kizema.anton.animateviewshowcase.helpers.UIHelper;
 public class AnimatedCircleDeco extends Decorator {
 
     private static final int NOT_INITED = -1;
-    private static final int DEF_FRAME_TIME = -1;
+    private static final int NUM_CIRCLES_DEF = 2;
+    private static final int ANIMATION_TIME_DEF = 5000;
 
     private Paint circleStrokePaint;
     private Paint circleFillPaint;
 
-    private Handler mHandler = new Handler();
-
     //configs
     private int widthOfCircle = UIHelper.getDPI(1);
     private int defRadius = NOT_INITED;
-    private int numOfCircles = 2;
-    private int frameTime = DEF_FRAME_TIME;//ms
+    private int numOfCircles = NUM_CIRCLES_DEF;
+    private int animationTime = ANIMATION_TIME_DEF;
 
     private int lengthBetweenCircles;
-    private int deltaDistance;
 
     private List<AnimCircle> animCircleList;
 
-    //    private AnimatedRunnable animatedRunnable;
-    ValueAnimator anim;
+    private BackgroundLooperThread backgroundLooperThread;
 
-    MyHandlerThread looperThread;
-
-    //animation velocity = 200px / second.
     private AnimatedCircleDeco(Context context) {
         super(context);
 
@@ -54,16 +47,12 @@ public class AnimatedCircleDeco extends Decorator {
         circleStrokePaint.setStyle(Paint.Style.STROKE);
         circleStrokePaint.setStrokeWidth(widthOfCircle);
 
-//        animatedRunnable = new AnimatedRunnable();
-
-        looperThread = new MyHandlerThread();
-        looperThread.start();
+        backgroundLooperThread = new BackgroundLooperThread();
+        backgroundLooperThread.start();
 
         addOnLayoutChangeListener(new OnLayoutChangeListener() {
             @Override
             public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
-
-                Log.d("YUIKIK", "onLayoutChange : ");
 
                 int w = getWidth();
                 int h = getHeight();
@@ -74,9 +63,7 @@ public class AnimatedCircleDeco extends Decorator {
                     defRadius = Math.min(w, h) / 2;
                 }
 
-//        int d = maxL - defRadius;
                 lengthBetweenCircles = maxL / numOfCircles;
-                deltaDistance = lengthBetweenCircles / 3;
 
                 int counter = 0;
                 for (AnimCircle c : animCircleList) {
@@ -84,25 +71,19 @@ public class AnimatedCircleDeco extends Decorator {
                     ++counter;
                 }
 
-                if (anim != null) {
-                    anim.cancel();
-                }
-
-                looperThread.taskOne();
-
-                curRadius = defRadius;
+                backgroundLooperThread.taskOne();
 
                 removeOnLayoutChangeListener(this);
             }
         });
     }
 
-    class MyHandlerThread extends HandlerThread {
+    private class BackgroundLooperThread extends HandlerThread {
 
         private Handler mHandler;
 
-        public MyHandlerThread() {
-            super("MyHandlerThread");
+        public BackgroundLooperThread() {
+            super("BackgroundLooperThread");
         }
 
         @Override
@@ -114,11 +95,7 @@ public class AnimatedCircleDeco extends Decorator {
                 public void handleMessage(Message msg) {
                     switch (msg.what) {
                         case 1:
-                            // Handle message
-                            f();
-                            break;
-                        case 2:
-                            // Handle message
+                            launchAnimation();
                             break;
                     }
                 }
@@ -128,22 +105,15 @@ public class AnimatedCircleDeco extends Decorator {
         public void taskOne() {
             mHandler.sendEmptyMessage(1);
         }
-
-        public void taskTwo() {
-            mHandler.sendEmptyMessage(2);
-        }
-
     }
 
-
-
-    private void f() {
+    private void launchAnimation() {
         int w = getWidth();
         int h = getHeight();
 
         final int maxL = Math.max(w / 2, h / 2);
 
-        anim = ValueAnimator.ofInt(0, maxL);
+        ValueAnimator anim = ValueAnimator.ofInt(0, maxL);
         anim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
 
             private int previusVal = 0;
@@ -152,38 +122,24 @@ public class AnimatedCircleDeco extends Decorator {
             public void onAnimationUpdate(ValueAnimator valueAnimator) {
                 int val = (Integer) valueAnimator.getAnimatedValue();
 
-
                 if (val < previusVal){
                     previusVal = 0;
                 }
 
                 int tmp = val;
-
                 val -= previusVal;
                 previusVal = tmp;
 
-                Log.d("Y","dVAL : " + val);
-
-                curRadius = val;
                 for (AnimCircle c : animCircleList) {
-                    c.incrementStartRadius(val, maxL, defRadius);
+                    c.incrementStartRadius(val, maxL);
                 }
 
                 postInvalidate();
-
             }
         });
         anim.setInterpolator(new LinearInterpolator());
-        anim.setDuration(5000).setRepeatCount(-1);
+        anim.setDuration(animationTime).setRepeatCount(-1);
         anim.start();
-
-    }
-
-    private int curRadius;
-
-    @Override
-    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        super.onLayout(changed, left, top, right, bottom);
 
     }
 
@@ -197,11 +153,6 @@ public class AnimatedCircleDeco extends Decorator {
         for (AnimCircle c : animCircleList) {
 
             if (c.getStartRadius() < 0) {
-                continue;
-            }
-
-            if (c.getStartRadius() >= h / 2 && c.getStartRadius() >= w / 2) {
-                c.setStartRadius(0);
                 continue;
             }
 
@@ -223,12 +174,6 @@ public class AnimatedCircleDeco extends Decorator {
 
         public Builder setNumOfCircles(int numOfCircles) {
             animatedCircleDeco.numOfCircles = numOfCircles;
-            animatedCircleDeco.animCircleList = new ArrayList<>(numOfCircles);
-
-            for (int i = 0; i < numOfCircles; ++i) {
-                AnimCircle circle = new AnimCircle();
-                animatedCircleDeco.animCircleList.add(circle);
-            }
 
             return this;
         }
@@ -247,8 +192,8 @@ public class AnimatedCircleDeco extends Decorator {
             return this;
         }
 
-        public Builder setFrameTime(int frameTime) {
-            animatedCircleDeco.frameTime = frameTime;
+        public Builder setAnimationTime(int animationTime){
+            animatedCircleDeco.animationTime = animationTime;
 
             return this;
         }
@@ -269,6 +214,13 @@ public class AnimatedCircleDeco extends Decorator {
         }
 
         public AnimatedCircleDeco build() {
+            animatedCircleDeco.animCircleList = new ArrayList<>(animatedCircleDeco.numOfCircles);
+
+            for (int i = 0; i < animatedCircleDeco.numOfCircles; ++i) {
+                AnimCircle circle = new AnimCircle();
+                animatedCircleDeco.animCircleList.add(circle);
+            }
+
             return animatedCircleDeco;
         }
 

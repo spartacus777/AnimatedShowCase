@@ -5,22 +5,33 @@ import android.widget.FrameLayout;
 
 import kizema.anton.animateviewshowcase.decorators.Decorator;
 
-/**
- * Created by somename on 06.09.2016.
- */
 public class FrameDecorator extends FrameLayout {
 
-    private View decoratedVIew;
+    private View decoratedView;
     private Decorator deco;
 
+    public enum AnimationMode {
+        TOP, BACK;
+    }
+
     public FrameDecorator(View decoratedView, Decorator decorator) {
+        this(decoratedView, decorator, AnimationMode.TOP);
+
+    }
+
+    public FrameDecorator(View decoratedView, Decorator decorator, AnimationMode order) {
         super(decoratedView.getContext());
 
-        this.decoratedVIew = decoratedView;
+        this.decoratedView = decoratedView;
         this.deco = decorator;
 
-        addView(decoratedView);
-        addView(deco);
+        if (order == AnimationMode.TOP) {
+            addView(decoratedView);
+            addView(deco);
+        } else {
+            addView(deco);
+            addView(decoratedView);
+        }
 
         decoratedView.addOnLayoutChangeListener(new OnLayoutChangeListener() {
             @Override

@@ -1,16 +1,10 @@
 package kizema.anton.animateviewshowcase.decorators.animcircle;
 
-/**
- * Created by somename on 06.09.2016.
- */
 public class AnimCircle {
 
     private int startRadius;
 
-//    private int radius;
-
-    public AnimCircle(){
-    }
+    public AnimCircle(){}
 
     public void setStartRadius(int startRadius){
         this.startRadius = startRadius;
@@ -19,16 +13,12 @@ public class AnimCircle {
     public int getStartRadius(){
         return startRadius;
     }
-    public void incrementStartRadius(int dx, int max, int def){
+    public void incrementStartRadius(int dx, int max){
         this.startRadius += dx;
 
         if (startRadius >= max){
-            startRadius = def;
+            startRadius -= max;
         }
     }
-
-//    public void setRadius(int radius){
-//        this.radius = radius;
-//    }
 
 }

@@ -16,7 +16,6 @@ public class CrossOverDeco extends Decorator {
         vertexPaint.setColor(Color.BLACK);
         vertexPaint.setStyle(Paint.Style.STROKE);
         vertexPaint.setStrokeWidth(2);
-
     }
 
     @Override
