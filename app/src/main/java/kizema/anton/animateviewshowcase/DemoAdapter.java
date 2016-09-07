@@ -10,11 +10,11 @@ import android.widget.TextView;
 
 import java.util.List;
 
-import kizema.anton.animateviewshowcase.decorators.Decorator;
+import kizema.anton.animateviewshowcase.decorators.animcircle.AnimatedCircleDeco;
 import kizema.anton.animateviewshowcase.helpers.ColorHelper;
 import kizema.anton.animateviewshowcase.helpers.UIHelper;
 
-public class DemoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+public class DemoAdapter extends RecyclerView.Adapter<DemoAdapter.BaseViewHolder> {
 
     private static final int TYPE_TV = 1;
     private static final int TYPE_IV = 2;
@@ -50,30 +50,41 @@ public class DemoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         return TYPE_IV;
     }
 
-    public static class ImageViewHolder extends RecyclerView.ViewHolder {
+    public static class BaseViewHolder extends RecyclerView.ViewHolder {
+
+        public AnimatedCircleDeco deco;
+
+        public BaseViewHolder(View itemView, AnimatedCircleDeco deco) {
+            super(itemView);
+
+            this.deco = deco;
+        }
+    }
+
+    public static class ImageViewHolder extends BaseViewHolder {
 
         public ImageView ivImageView;
 
-        public ImageViewHolder(View itemView) {
-            super(itemView);
+        public ImageViewHolder(View itemView, AnimatedCircleDeco deco) {
+            super(itemView, deco);
 
             ivImageView = (ImageView) itemView.findViewWithTag(tagIv);
         }
     }
 
-    public static class TextViewHolder extends RecyclerView.ViewHolder {
+    public static class TextViewHolder extends BaseViewHolder {
 
         public TextView tvTitleId;
 
-        public TextViewHolder(View itemView) {
-            super(itemView);
+        public TextViewHolder(View itemView, AnimatedCircleDeco deco) {
+            super(itemView, deco);
 
             tvTitleId = (TextView) itemView.findViewWithTag(tagTv);
         }
     }
 
     @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public BaseViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         switch (viewType){
             case TYPE_TV: {
 
@@ -86,10 +97,10 @@ public class DemoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 tv.setPadding(UIHelper.getPixel(60), UIHelper.getPixel(20), UIHelper.getPixel(60), UIHelper.getPixel(20));
                 tv.setGravity(Gravity.CENTER);
 
-                Decorator deco = AnimationSetUpHelper.getInstance().buildAnimatedDeco(parent.getContext(), 5, 3, 6, ColorHelper.COLOR_3);
+                AnimatedCircleDeco deco = (AnimatedCircleDeco) AnimationSetUpHelper.getInstance().buildAnimatedDeco(parent.getContext(), 5, 3, 6, ColorHelper.COLOR_3);
                 FrameDecorator frame = new FrameDecorator(tv, deco);
 
-                return new TextViewHolder(frame);
+                return new TextViewHolder(frame, deco);
             }
             case TYPE_IV: {
                 ImageView iv = new ImageView(parent.getContext());
@@ -100,10 +111,10 @@ public class DemoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 iv.setScaleType(ImageView.ScaleType.CENTER);
                 iv.setTag(tagIv);
 
-                Decorator deco = AnimationSetUpHelper.getInstance().buildAnimatedDeco(parent.getContext(), 10, 1, 2, ColorHelper.COLOR_1);
+                AnimatedCircleDeco deco = (AnimatedCircleDeco) AnimationSetUpHelper.getInstance().buildAnimatedDeco(parent.getContext(), 10, 1, 2, ColorHelper.COLOR_1);
                 FrameDecorator frame = new FrameDecorator(iv, deco);
 
-                return new ImageViewHolder(frame);
+                return new ImageViewHolder(frame, deco);
             }
         }
 
@@ -111,7 +122,19 @@ public class DemoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
     @Override
-    public void onBindViewHolder(final RecyclerView.ViewHolder holder, final int position) {
+    public void onViewAttachedToWindow(BaseViewHolder holder) {
+        super.onViewAttachedToWindow(holder);
+        holder.deco.forceStartAnimation();
+    }
+
+    @Override
+    public void onViewDetachedFromWindow(BaseViewHolder holder) {
+        super.onViewDetachedFromWindow(holder);
+        holder.deco.forceStopAnimation();
+    }
+
+    @Override
+    public void onBindViewHolder(final BaseViewHolder holder, final int position) {
 
         DEMO model = busModels.get(position);
 

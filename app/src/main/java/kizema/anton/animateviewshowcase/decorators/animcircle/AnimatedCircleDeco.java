@@ -36,6 +36,8 @@ public class AnimatedCircleDeco extends Decorator {
 
     private List<AnimCircle> animCircleList;
 
+    private ValueAnimator anim;
+
     private BackgroundLooperThread backgroundLooperThread;
 
     private AnimatedCircleDeco(Context context) {
@@ -54,28 +56,44 @@ public class AnimatedCircleDeco extends Decorator {
             @Override
             public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
 
-                int w = getWidth();
-                int h = getHeight();
-
-                int maxL = Math.max(w / 2, h / 2);
-
-                if (defRadius == NOT_INITED) {
-                    defRadius = Math.min(w, h) / 2;
-                }
-
-                lengthBetweenCircles = maxL / numOfCircles;
-
-                int counter = 0;
-                for (AnimCircle c : animCircleList) {
-                    c.setStartRadius(defRadius - counter * lengthBetweenCircles);
-                    ++counter;
-                }
-
-                backgroundLooperThread.launchAnimAsync();
-
-//                removeOnLayoutChangeListener(this);
+                startAnim();
             }
         });
+    }
+
+    public void forceStartAnimation(){
+        startAnim();
+    }
+
+    public void forceStopAnimation(){
+        stopAnimation();
+    }
+
+    private void stopAnimation(){
+        if (anim != null) {
+            anim.cancel();
+        }
+    }
+
+    private void startAnim(){
+        int w = getMeasuredWidth();
+        int h = getMeasuredHeight();
+
+        int maxL = Math.max(w / 2, h / 2);
+
+        if (defRadius == NOT_INITED) {
+            defRadius = Math.min(w, h) / 2;
+        }
+
+        lengthBetweenCircles = maxL / numOfCircles;
+
+        int counter = 0;
+        for (AnimCircle c : animCircleList) {
+            c.setStartRadius(defRadius - counter * lengthBetweenCircles);
+            ++counter;
+        }
+
+        backgroundLooperThread.launchAnimAsync();
     }
 
     private class BackgroundLooperThread extends HandlerThread {
@@ -111,18 +129,13 @@ public class AnimatedCircleDeco extends Decorator {
         }
     }
 
-    ValueAnimator anim;
-
     private void launchAnimation() {
         int w = getWidth();
         int h = getHeight();
 
         final int maxL = Math.max(w / 2, h / 2);
 
-        if (anim != null) {
-            anim.cancel();
-        }
-
+        stopAnimation();
         anim = ValueAnimator.ofInt(0, maxL);
         anim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
 
