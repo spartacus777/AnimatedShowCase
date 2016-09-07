@@ -1,10 +1,9 @@
-package kizema.anton.animateviewshowcase;
+package kizema.anton.animateviewshowcase.helpers;
 
 import android.content.Context;
 
 import kizema.anton.animateviewshowcase.decorators.Decorator;
 import kizema.anton.animateviewshowcase.decorators.animcircle.AnimatedCircleDeco;
-import kizema.anton.animateviewshowcase.helpers.UIHelper;
 
 public class AnimationSetUpHelper {
 

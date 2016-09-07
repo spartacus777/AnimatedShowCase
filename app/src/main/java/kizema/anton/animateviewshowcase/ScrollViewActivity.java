@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 import kizema.anton.animateviewshowcase.decorators.Decorator;
 import kizema.anton.animateviewshowcase.decorators.animcircle.AnimatedCircleDeco;
+import kizema.anton.animateviewshowcase.helpers.AnimationSetUpHelper;
 import kizema.anton.animateviewshowcase.helpers.ColorHelper;
 import kizema.anton.animateviewshowcase.helpers.UIHelper;
 
