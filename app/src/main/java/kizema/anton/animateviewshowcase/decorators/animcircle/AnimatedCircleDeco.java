@@ -40,6 +40,8 @@ public class AnimatedCircleDeco extends Decorator {
 
     private BackgroundLooperThread backgroundLooperThread;
 
+    private volatile boolean isAnimForceStopped = false;
+
     private AnimatedCircleDeco(Context context) {
         super(context);
 
@@ -55,17 +57,21 @@ public class AnimatedCircleDeco extends Decorator {
         addOnLayoutChangeListener(new OnLayoutChangeListener() {
             @Override
             public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
-
+                isAnimForceStopped = false;
                 startAnim();
+
+                AnimatedCircleDeco.this.removeOnLayoutChangeListener(this);
             }
         });
     }
 
     public void forceStartAnimation(){
+        isAnimForceStopped = false;
         startAnim();
     }
 
     public void forceStopAnimation(){
+        isAnimForceStopped = true;
         stopAnimation();
     }
 
@@ -118,9 +124,13 @@ public class AnimatedCircleDeco extends Decorator {
             mHandler = new Handler(getLooper()) {
                 @Override
                 public void handleMessage(Message msg) {
+
                     switch (msg.what) {
                         case DO_JOB:
-                            launchAnimation();
+                            if (!isAnimForceStopped){
+                                launchAnimation();
+                            }
+
                             break;
                         case CANCEL_ANIM_JOB:
                             stopAnimPrivate();
