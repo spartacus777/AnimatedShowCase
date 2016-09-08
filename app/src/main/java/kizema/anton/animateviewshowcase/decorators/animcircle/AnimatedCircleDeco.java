@@ -106,6 +106,13 @@ public class AnimatedCircleDeco extends Decorator {
         backgroundLooperThread.launchAnimAsync();
     }
 
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+
+        forceStopAnimation();
+    }
+
     private class BackgroundLooperThread extends HandlerThread {
 
         private static final int DO_JOB = 1;
